@@ -184,3 +184,26 @@ class DeliveringTests(QualifierTestCase):
 
         for request in staff:
             await self.manager(create_request({"type": "staff.offduty", "id": request.scope["id"]}))
+
+    async def test_even_staff_distribution(self):
+        passed_staff: dict[str, int] = {}
+
+        def staff_receive(id_: str) -> Callable[[], Awaitable[None]]:
+            async def inner() -> None:
+                passed_staff[id_] += 1
+
+            return inner
+
+        staff = [
+            create_request({"type": "staff.onduty", "id": id_}, staff_receive(id_))
+            for id_ in STAFF_IDS
+        ]
+
+        for request in staff:
+            await self.manager(request)
+
+        for _ in range(len(STAFF_IDS) * 20):
+            await self.manager(create_request({"type": "order"}))
+
+        for id_ in STAFF_IDS:
+            self.assertEqual(passed_staff[id_], 20, msg="Orders not distributed evenly among staff")
