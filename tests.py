@@ -142,13 +142,45 @@ class DeliveringTests(QualifierTestCase):
         # being the result.
         sentinels = [(object(), object()) for _ in range(len(STAFF_IDS))]
 
-        # By reusing these we don't need to care about which
+        # By reusing these we don't need to care about which staff was sent the order.
         staff_receive, staff_send = AsyncMock(), AsyncMock()
-        staff = {
-            create_request({"type": "staff.onduty", "id": id_}, staff_receive, staff_send): sentinel
-            for id_, sentinel in zip(STAFF_IDS, sentinels)
-        }
+        staff = [
+            create_request(
+                {"type": "staff.onduty", "id": id_},
+
+                # We wrap the mocks with lambdas that pass the ID of the staff, so that we can ensure
+                # that the order was both sent and received to the same staff.
+                lambda: staff_receive(id_),
+                lambda obj: staff_send(id_, obj)
+            )
+            for id_ in STAFF_IDS
+        ]
+
+        for request in staff:
+            await self.manager(request)
 
         orders = [create_request({"type": "order"}, AsyncMock(), AsyncMock()) for _ in range(len(STAFF_IDS))]
 
-        # TODO: Verify that the order was delivered to a staff
+        for order, (full_order, result) in zip(orders, sentinels):
+            order.receive.return_value = full_order
+            staff_receive.return_value = result
+
+            await self.manager(order)
+
+            staff_send.assert_called_once()
+            self.assertEqual(len(staff_send.call_args.args), 2)
+
+            staff_id = staff_send.call_args[0]
+            staff_send.assert_called_once_with(staff_id, full_order)
+
+            # Make sure the same staff was also received from
+            staff_receive.assert_called_once_with(staff_id)
+
+            order.receive.assert_called_once_with()
+            order.send.assert_called_once_with(result)
+
+            staff_receive.reset_mock()
+            staff_send.reset_mock()
+
+        for request in staff:
+            await self.manager(create_request({"type": "staff.offduty", "id": request.scope["id"]}))
