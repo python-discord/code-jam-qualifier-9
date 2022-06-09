@@ -1,3 +1,5 @@
+import random
+from collections import defaultdict
 import unittest
 import unittest.mock
 from types import MappingProxyType
@@ -24,7 +26,9 @@ STAFF_IDS = (
     "jmMZkSGVBbCDgKKMMSNPS", "HeLlOWoRlD123", "iKnowThatYouAreReadingThis",
     "PyTHonDIscorDCoDEJam", "iWAShereWRITINGthis"
 )
-
+SPECIALITIES = (
+    "pasta", "meat", "vegetables", "non-food", "dessert",
+)
 
 class QualifierTestCase(unittest.IsolatedAsyncioTestCase):
     def setUp(self) -> None:
@@ -51,7 +55,7 @@ class RegistrationTests(QualifierTestCase):
         id_ = STAFF_IDS[0]
         receive, send = AsyncMock(), AsyncMock()
 
-        staff = create_request({"type": "staff.onduty", "id": id_}, receive, send)
+        staff = create_request({"type": "staff.onduty", "id": id_, "speciality": SPECIALITIES[0]}, receive, send)
 
         await self.manager(staff)
 
@@ -80,10 +84,10 @@ class RegistrationTests(QualifierTestCase):
     async def test_multiple_staff_registration(self) -> None:
         staff: list[Request] = []
 
-        for id_ in STAFF_IDS:
+        for id_, speciality in zip(STAFF_IDS, SPECIALITIES):
             receive, send = AsyncMock(), AsyncMock()
 
-            request = create_request({"type": "staff.onduty", "id": id_}, receive, send)
+            request = create_request({"type": "staff.onduty", "id": id_, "speciality": speciality}, receive, send)
             staff.append(request)
 
             await self.manager(request)
@@ -118,11 +122,17 @@ class DeliveringTests(QualifierTestCase):
         id_ = STAFF_IDS[-1]
 
         complete_order, result = object(), object()
-        staff = create_request({"type": "staff.onduty", "id": id_}, AsyncMock(return_value=result), AsyncMock())
+        staff = create_request(
+            {"type": "staff.onduty", "id": id_, "speciality": SPECIALITIES[-1]},
+            AsyncMock(return_value=result), AsyncMock()
+        )
 
         await self.manager(staff)
 
-        order = create_request({"type": "order"}, AsyncMock(return_value=complete_order), AsyncMock())
+        order = create_request(
+            {"type": "order", "speciality": SPECIALITIES[-1]},
+            AsyncMock(return_value=complete_order), AsyncMock()
+        )
         await self.manager(order)
 
         order.receive.assert_called_once()
@@ -133,7 +143,7 @@ class DeliveringTests(QualifierTestCase):
 
         await self.manager(create_request({"type": "staff.offduty", "id": id_}))
 
-    async def test_handle_multipler_customers(self) -> None:
+    async def test_handle_multiple_customers(self) -> None:
         # We cannot *necessarily* assume that there will be an even distribution of orders at
         # this point. We should decouple the testing of orders being delivered to staff, and
         # the testing of the distribution of those orders.
@@ -146,14 +156,14 @@ class DeliveringTests(QualifierTestCase):
         staff_receive, staff_send = AsyncMock(), AsyncMock()
         staff = [
             create_request(
-                {"type": "staff.onduty", "id": id_},
+                {"type": "staff.onduty", "id": id_, "speciality": speciality},
 
                 # We wrap the mocks with lambdas that pass the ID of the staff, so that we can ensure
                 # that the order was both sent and received to the same staff.
                 lambda: staff_receive(id_),
                 lambda obj: staff_send(id_, obj)
             )
-            for id_ in STAFF_IDS
+            for id_, speciality in zip(STAFF_IDS, reversed(SPECIALITIES))
         ]
 
         for request in staff:
@@ -170,7 +180,7 @@ class DeliveringTests(QualifierTestCase):
             staff_send.assert_called_once()
             self.assertEqual(len(staff_send.call_args.args), 2)
 
-            staff_id = staff_send.call_args[0]
+            staff_id = staff_send.call_args.args[0]
             staff_send.assert_called_once_with(staff_id, full_order)
 
             # Make sure the same staff was also received from
@@ -185,8 +195,42 @@ class DeliveringTests(QualifierTestCase):
         for request in staff:
             await self.manager(create_request({"type": "staff.offduty", "id": request.scope["id"]}))
 
+    async def test_order_speciality_match(self) -> None:
+        staff_ids, specialities = list(STAFF_IDS), list(SPECIALITIES)
+        random.shuffle(staff_ids)
+        random.shuffle(specialities)
+
+        staff_receive, staff_send = AsyncMock(), AsyncMock()
+        staff = {
+            id_: create_request(
+                {"type": "staff.onduty", "id": id_, "speciality": speciality},
+
+                # We wrap the mocks with lambdas that pass the ID of the staff, so that we can ensure
+                # that the order was both sent and received to the same staff.
+                lambda: staff_receive(id_),
+                lambda obj: staff_send(id_, obj)
+            )
+            for id_, speciality in zip(staff_ids, specialities)
+        }
+
+        for request in staff.values():
+            await self.manager(request)
+
+        orders = [create_request({"type": "order", "speciality": speciality}) for speciality in SPECIALITIES * 10]
+
+        for order in orders:
+            await self.manager(order)
+
+            staff_id = staff_send.call_args.args[0]
+
+            self.assertEqual(order.scope["speciality"], staff[staff_id].scope["speciality"])
+            staff_send.reset_mock()
+
+        for request in staff.values():
+            await self.manager(create_request({"type": "staff.offduty", "id": request.scope["id"]}))
+
     async def test_even_staff_distribution(self):
-        passed_staff: dict[str, int] = {}
+        passed_staff: dict[str, int] = defaultdict()
 
         def staff_receive(id_: str) -> Callable[[], Awaitable[None]]:
             async def inner() -> None:
@@ -195,15 +239,18 @@ class DeliveringTests(QualifierTestCase):
             return inner
 
         staff = [
-            create_request({"type": "staff.onduty", "id": id_}, staff_receive(id_))
-            for id_ in STAFF_IDS
+            create_request({"type": "staff.onduty", "id": id_, "speciality": speciality}, staff_receive(id_))
+            # TODO: We should consider making uneven distribution of specialities as in multiple, this
+            # test was mostly superseded by test_order_speciality_match() and doesn't really test more
+            # than it does because there is *one* of every speciality.
+            for id_, speciality in zip(STAFF_IDS, SPECIALITIES)
         ]
 
         for request in staff:
             await self.manager(request)
 
-        for _ in range(len(STAFF_IDS) * 20):
-            await self.manager(create_request({"type": "order"}))
+        for speciality in SPECIALITIES * 20:
+            await self.manager(create_request({"type": "order", "speciality": speciality}))
 
         for id_ in STAFF_IDS:
             self.assertEqual(passed_staff[id_], 20, msg="Orders not distributed evenly among staff")
