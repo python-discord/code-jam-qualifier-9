@@ -233,7 +233,7 @@ class DeliveringTests(QualifierTestCase):
             await self.manager(create_request({"type": "staff.offduty", "id": request.scope["id"]}))
 
     async def test_even_staff_distribution(self):
-        passed_staff: dict[str, int] = defaultdict()
+        passed_staff: dict[str, int] = defaultdict(lambda: 0)
 
         def staff_receive(id_: str) -> Callable[[], Awaitable[None]]:
             async def inner() -> None:
