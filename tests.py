@@ -169,7 +169,10 @@ class DeliveringTests(QualifierTestCase):
         for request in staff:
             await self.manager(request)
 
-        orders = [create_request({"type": "order"}, AsyncMock(), AsyncMock()) for _ in range(len(STAFF_IDS))]
+        orders = [
+            create_request({"type": "order", "speciality": speciality}, AsyncMock(), AsyncMock())
+            for speciality in SPECIALITIES
+        ]
 
         for order, (full_order, result) in zip(orders, sentinels):
             order.receive.return_value = full_order
