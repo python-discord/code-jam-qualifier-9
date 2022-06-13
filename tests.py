@@ -10,6 +10,15 @@ import qualifier
 from boilerplate import Request
 
 
+STAFF_IDS = (
+    "jmMZkSGVBbCDgKKMMSNPS", "HeLlOWoRlD123", "iKnowThatYouAreReadingThis",
+    "PyTHonDIscorDCoDEJam", "iWAShereWRITINGthis"
+)
+SPECIALITIES = (
+    "pasta", "meat", "vegetables", "non-food", "dessert",
+)
+
+
 async def _receive() -> None: ...
 async def _send(_: object) -> None: ...
 
@@ -22,13 +31,17 @@ def create_request(
     return Request(MappingProxyType(scope), receive, send)
 
 
-STAFF_IDS = (
-    "jmMZkSGVBbCDgKKMMSNPS", "HeLlOWoRlD123", "iKnowThatYouAreReadingThis",
-    "PyTHonDIscorDCoDEJam", "iWAShereWRITINGthis"
-)
-SPECIALITIES = (
-    "pasta", "meat", "vegetables", "non-food", "dessert",
-)
+def wrap_receive_mock(id_: str, mock: AsyncMock) -> Callable[[], Awaitable[object]]:
+    async def receive() -> object:
+        return await mock(id_)
+    return receive
+
+
+def wrap_send_mock(id_: str, mock: AsyncMock) -> Callable[[object], Awaitable[Any]]:
+    async def send(obj: object) -> Any:
+        return await mock(id_, obj)
+    return send
+
 
 class QualifierTestCase(unittest.IsolatedAsyncioTestCase):
     def setUp(self) -> None:
@@ -158,10 +171,9 @@ class DeliveringTests(QualifierTestCase):
             create_request(
                 {"type": "staff.onduty", "id": id_, "speciality": speciality},
 
-                # We wrap the mocks with lambdas that pass the ID of the staff, so that we can ensure
-                # that the order was both sent and received to the same staff.
-                lambda: staff_receive(id_),
-                lambda obj: staff_send(id_, obj)
+                # We wrap the mocks so that they pass the ID of the staff, that way
+                # we can ensure that the order was both sent and received to the same staff.
+                wrap_receive_mock(id_, staff_receive), wrap_send_mock(id_, staff_send)
             )
             for id_, speciality in zip(STAFF_IDS, reversed(SPECIALITIES))
         ]
@@ -208,10 +220,9 @@ class DeliveringTests(QualifierTestCase):
             id_: create_request(
                 {"type": "staff.onduty", "id": id_, "speciality": speciality},
 
-                # We wrap the mocks with lambdas that pass the ID of the staff, so that we can ensure
-                # that the order was both sent and received to the same staff.
-                lambda: staff_receive(id_),
-                lambda obj: staff_send(id_, obj)
+                # We wrap the mocks so that they pass the ID of the staff, that way
+                # we can ensure that the order was both sent and received to the same staff.
+                wrap_receive_mock(id_, staff_receive), wrap_send_mock(id_, staff_send)
             )
             for id_, speciality in zip(staff_ids, specialities)
         }
