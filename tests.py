@@ -1,7 +1,7 @@
 import random
-from collections import defaultdict
 import unittest
 import itertools
+from collections import defaultdict, Counter
 from types import MappingProxyType
 from typing import Any, Awaitable, Callable
 from unittest.mock import AsyncMock
@@ -281,6 +281,8 @@ class DeliveringTests(QualifierTestCase):
         for request in staff.values():
             await self.manager(create_request({"type": "staff.offduty", "id": request.scope["id"]}))
 
+
+class OptionalTests(QualifierTestCase):
     async def test_even_staff_distribution(self):
         passed_staff: dict[str, int] = defaultdict(lambda: 0)
 
@@ -290,19 +292,25 @@ class DeliveringTests(QualifierTestCase):
 
             return inner
 
+        staff_ids, specialities = list(STAFF_IDS), list(SPECIALITIES[:3])
+        random.shuffle(staff_ids)
+        random.shuffle(specialities)
+
         staff = [
             create_request({"type": "staff.onduty", "id": id_, "speciality": speciality}, staff_receive(id_))
-            # TODO: We should consider making uneven distribution of specialities as in multiple, this
-            # test was mostly superseded by test_order_speciality_match() and doesn't really test more
-            # than it does because there is *one* of every speciality.
-            for id_, speciality in zip(STAFF_IDS, SPECIALITIES)
+            for id_, speciality in zip(staff_ids, itertools.cycle(specialities))
         ]
 
         for request in staff:
             await self.manager(request)
 
-        for speciality in SPECIALITIES * 20:
-            await self.manager(create_request({"type": "order", "speciality": speciality}))
+        # Since there is not an equal amount of staff for each speciality, we need to
+        # be careful in making sure that the orders match up.
+        SPECIALITY_MULTIPLIER = 20
+        occurence = Counter([speciality for (_, speciality) in zip(staff_ids, itertools.cycle(specialities))])
+        for speciality, count in occurence.items():
+            for _ in range(count * SPECIALITY_MULTIPLIER):
+                await self.manager(create_request({"type": "order", "speciality": speciality}))
 
         for id_ in STAFF_IDS:
-            self.assertEqual(passed_staff[id_], 20, msg="Orders not distributed evenly among staff")
+            self.assertEqual(passed_staff[id_], SPECIALITY_MULTIPLIER, msg="Orders not distributed evenly among staff")
