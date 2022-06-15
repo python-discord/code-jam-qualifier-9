@@ -1,7 +1,7 @@
 import random
 from collections import defaultdict
 import unittest
-import unittest.mock
+import itertools
 from types import MappingProxyType
 from typing import Any, Awaitable, Callable
 from unittest.mock import AsyncMock
@@ -231,6 +231,44 @@ class DeliveringTests(QualifierTestCase):
             await self.manager(request)
 
         orders = [create_request({"type": "order", "speciality": speciality}) for speciality in specialities * 10]
+
+        for order in orders:
+            await self.manager(order)
+
+            staff_id = staff_send.call_args.args[0]
+
+            self.assertEqual(order.scope["speciality"], staff[staff_id].scope["speciality"])
+            staff_send.reset_mock()
+
+        for request in staff.values():
+            await self.manager(create_request({"type": "staff.offduty", "id": request.scope["id"]}))
+
+    async def test_uneven_order_speciality(self) -> None:
+        # Similar to test_order_speciality_match() but there are multiple staff
+        # with the same speciality.
+        staff_ids, specialities = list(STAFF_IDS), list(SPECIALITIES[:2])
+        random.shuffle(staff_ids)
+        random.shuffle(specialities)
+
+        staff_receive, staff_send = AsyncMock(), AsyncMock()
+        staff = {
+            id_: create_request(
+                {"type": "staff.onduty", "id": id_, "speciality": speciality},
+
+                # We wrap the mocks so that they pass the ID of the staff, that way
+                # we can ensure that the order was both sent and received to the same staff.
+                wrap_receive_mock(id_, staff_receive), wrap_send_mock(id_, staff_send)
+            )
+            for id_, speciality in zip(staff_ids, itertools.cycle(specialities))
+        }
+
+        for request in staff.values():
+            await self.manager(request)
+
+        orders = [
+            create_request({"type": "order", "speciality": speciality})
+            for speciality in itertools.chain(*itertools.repeat(specialities, 5))
+        ]
 
         for order in orders:
             await self.manager(order)
