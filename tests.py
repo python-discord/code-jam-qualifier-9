@@ -230,7 +230,7 @@ class DeliveringTests(QualifierTestCase):
         for request in staff.values():
             await self.manager(request)
 
-        orders = [create_request({"type": "order", "speciality": speciality}) for speciality in SPECIALITIES * 10]
+        orders = [create_request({"type": "order", "speciality": speciality}) for speciality in specialities * 10]
 
         for order in orders:
             await self.manager(order)
