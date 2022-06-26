@@ -7,7 +7,7 @@ from typing import Any, Awaitable, Callable
 from unittest.mock import AsyncMock
 
 import qualifier
-from boilerplate import Request
+from qualifier import Request
 
 
 STAFF_IDS = (
