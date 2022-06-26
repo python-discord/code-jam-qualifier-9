@@ -1,4 +1,13 @@
-from boilerplate import Request
+import typing
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True)
+class Request:
+    scope: typing.Mapping[str, str]
+
+    receive: typing.Callable[[], typing.Awaitable[object]]
+    send: typing.Callable[[object], typing.Awaitable[None]]
 
 
 class RestaurantManager:
