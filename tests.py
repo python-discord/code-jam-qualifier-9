@@ -148,11 +148,11 @@ class DeliveringTests(QualifierTestCase):
         )
         await self.manager(order)
 
-        order.receive.assert_called_once()
-        staff.send.assert_called_once_with(complete_order)
+        order.receive.assert_awaited_once()
+        staff.send.assert_awaited_once_with(complete_order)
 
-        staff.receive.assert_called_once()
-        order.send.assert_called_once_with(result)
+        staff.receive.assert_awaited_once()
+        order.send.assert_awaited_once_with(result)
 
         await self.manager(create_request({"type": "staff.offduty", "id": id_}))
 
@@ -192,17 +192,22 @@ class DeliveringTests(QualifierTestCase):
 
             await self.manager(order)
 
-            staff_send.assert_called_once()
-            self.assertEqual(len(staff_send.call_args.args), 2)
+            staff_send.assert_awaited_once()
+
+            # We assert that it is 2 arguments, because the wrapper over the mock passes an additional one
+            self.assertEqual(
+                len(staff_send.call_args.args), 2,
+                msg="Staff send method not called with awaited amount of arguments"
+            )
 
             staff_id = staff_send.call_args.args[0]
-            staff_send.assert_called_once_with(staff_id, full_order)
+            staff_send.assert_awaited_once_with(staff_id, full_order)
 
             # Make sure the same staff was also received from
-            staff_receive.assert_called_once_with(staff_id)
+            staff_receive.assert_awaited_once_with(staff_id)
 
-            order.receive.assert_called_once_with()
-            order.send.assert_called_once_with(result)
+            order.receive.assert_awaited_once_with()
+            order.send.assert_awaited_once_with(result)
 
             staff_receive.reset_mock()
             staff_send.reset_mock()
@@ -235,9 +240,13 @@ class DeliveringTests(QualifierTestCase):
         for order in orders:
             await self.manager(order)
 
+            staff_send.assert_awaited_once()
             staff_id = staff_send.call_args.args[0]
 
-            self.assertEqual(order.scope["speciality"], staff[staff_id].scope["speciality"])
+            self.assertEqual(
+                order.scope["speciality"], staff[staff_id].scope["speciality"],
+                msg="Order speciality not matched with speciality of staff"
+            )
             staff_send.reset_mock()
 
         for request in staff.values():
@@ -275,7 +284,10 @@ class DeliveringTests(QualifierTestCase):
 
             staff_id = staff_send.call_args.args[0]
 
-            self.assertEqual(order.scope["speciality"], staff[staff_id].scope["speciality"])
+            self.assertEqual(
+                order.scope["speciality"], staff[staff_id].scope["speciality"],
+                msg="Order speciality not matched with speciality of staff"
+            )
             staff_send.reset_mock()
 
         for request in staff.values():
