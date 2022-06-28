@@ -56,7 +56,7 @@ An example `"staff.onduty"` request:
 {
 	"type": "staff.onduty",
 	"id": "AbCd3Fg",
-	"speciality": "meat"
+	"speciality": ["meat"]
 }
 ```
 
@@ -83,7 +83,7 @@ When a `"staff.offduty"` request is received, the staff member must be removed f
 ### Step 3 - Handling Customers
 After all staff members have become on-duty, you will begin receiving requests from customers trying to order food.
 
-Requests from customers can be identified by the Request's scope dictionary’s `"type"` key having the value `"order"`. 
+Requests from customers can be identified by the Request's scope dictionary's `"type"` key having the value `"order"`. 
 ```json
 {
 	"type": "order",
@@ -91,9 +91,9 @@ Requests from customers can be identified by the Request's scope dictionary’s 
 }
 ```
 
-When an order request is received, you should receive the full order via the `.receive()` method. Your application doesn’t need to concern itself with what this order is. This object should just be:
+When an order request is received, you should receive the full order via the `.receive()` method. Your application doesn't need to concern itself with what this order is. This object should just be:
 - Passed to a selected member of staff by calling the `.send()` method. 
-- Afterwards, call the staff’s `.receive()` method to get the result.
+- Afterwards, call the staff's `.receive()` method to get the result.
 - And finally, pass the result back to the order using the `.send()` method.
 
 ```python
@@ -110,7 +110,7 @@ await request.send(result)
 > **Warning**
 > The tests rely on the structure of `self.staff`. If you wish to change the structure of the `self.staff` attribute at any point in this step, you can create a property named `staff` to make earlier tests still pass. It should return a dictionary with the same structure as `self.staff` used to.
 
-Certain staff are better at certain orders, making them faster at that type of order. You can read this from the staff’s request `scope` dictionary with the `"speciality"` key.
+Certain staff are better at certain orders, making them faster at that type of order. You can read this from the staff's request `scope` dictionary with the `"speciality"` key.
 
 Example requests:
 ```json
@@ -128,10 +128,10 @@ Example requests:
 }
 ```
 
-Your application should keep track of which staff is better at which specialty of order by reading the order’s matching `"speciality"` key in its `scope` dictionary, and prioritize orders to those staff.
+Your application should pass the order to a staff member that has that specialty by reading the order's matching `"speciality"` key in its `scope` dictionary.
 
 > **Note**
-> The `"speciality"` key is included in all `"staff.onduty"` requests but absent from `"staff.offduty"` requests.
+> The `"speciality"` key is included in all `"staff.onduty"` requests, but absent from `"staff.offduty"` requests.
 
 #### Challenge Yourself
 We won't test you on how you distribute work between prioritized staff members, but in a self-respecting kitchen, work should be distributed fairly.
