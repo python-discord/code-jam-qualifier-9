@@ -107,9 +107,6 @@ await request.send(result)
 ```
 
 ### Step 4 - Order Specialization
-> **Warning**
-> The tests rely on the structure of `self.staff`. If you wish to change the structure of the `self.staff` attribute at any point in this step, you can create a property named `staff` to make earlier tests still pass. It should return a dictionary with the same structure as `self.staff` used to.
-
 Certain staff are better at certain orders, making them faster at that type of order. You can read this from the staff's request `scope` dictionary with the `"speciality"` key.
 
 Example requests:
@@ -135,6 +132,9 @@ Your application should pass the order to a staff member that has that specialty
 
 #### Challenge Yourself
 We won't test you on how you distribute work between prioritized staff members, but in a self-respecting kitchen, work should be distributed fairly.
+
+> **Warning**
+> The tests rely on the structure of `self.staff`. If you wish to change the structure of the `self.staff` attribute at any point in this step, you can create a property named `staff` to make earlier tests still pass. It should return a dictionary with the same structure as `self.staff` used to.
 
 
 ## Good Luck!
