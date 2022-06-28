@@ -143,7 +143,7 @@ class DeliveringTests(QualifierTestCase):
         await self.manager(staff)
 
         order = create_request(
-            {"type": "order", "speciality": [SPECIALITIES[-1]]},
+            {"type": "order", "speciality": SPECIALITIES[-1]},
             AsyncMock(return_value=complete_order), AsyncMock()
         )
         await self.manager(order)
@@ -182,7 +182,7 @@ class DeliveringTests(QualifierTestCase):
             await self.manager(request)
 
         orders = [
-            create_request({"type": "order", "speciality": [speciality]}, AsyncMock(), AsyncMock())
+            create_request({"type": "order", "speciality": speciality}, AsyncMock(), AsyncMock())
             for speciality in SPECIALITIES
         ]
 
@@ -235,7 +235,7 @@ class DeliveringTests(QualifierTestCase):
         for request in staff.values():
             await self.manager(request)
 
-        orders = [create_request({"type": "order", "speciality": [speciality]}) for speciality in specialities * 10]
+        orders = [create_request({"type": "order", "speciality": speciality}) for speciality in specialities * 10]
 
         for order in orders:
             await self.manager(order)
@@ -275,7 +275,7 @@ class DeliveringTests(QualifierTestCase):
             await self.manager(request)
 
         orders = [
-            create_request({"type": "order", "speciality": [speciality]})
+            create_request({"type": "order", "speciality": speciality})
             for speciality in itertools.chain(*itertools.repeat(specialities, 5))
         ]
 
