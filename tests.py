@@ -1,8 +1,6 @@
-from contextlib import AsyncContextDecorator
 import random
 import unittest
 import itertools
-from collections import defaultdict, Counter
 from types import MappingProxyType
 from typing import Any, Awaitable, Callable
 from unittest.mock import AsyncMock
@@ -325,8 +323,8 @@ class DeliveringTests(QualifierTestCase):
             staff_send.assert_awaited_once()
             staff_id = staff_send.call_args.args[0]
             if order.scope["speciality"] == SPECIALITIES[0]:
-                self.assertEqual(staff_id, staff_one, msg="Order speciality not match with speciality of staff")
+                self.assertEqual(staff_id, staff_one.scope["id"], msg="Order speciality not match with speciality of staff")
             else:
-                self.assertEqual(staff_id, staff_two, msg="Order speciality not match with speciality of staff")
+                self.assertEqual(staff_id, staff_two.scope["id"], msg="Order speciality not match with speciality of staff")
 
             staff_send.reset_mock()
