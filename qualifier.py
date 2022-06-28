@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class Request:
-    scope: typing.Mapping[str, str]
+    scope: typing.Mapping[str, typing.Any]
 
     receive: typing.Callable[[], typing.Awaitable[object]]
     send: typing.Callable[[object], typing.Awaitable[None]]

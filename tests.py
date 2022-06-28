@@ -1,3 +1,4 @@
+from contextlib import AsyncContextDecorator
 import random
 import unittest
 import itertools
@@ -24,7 +25,7 @@ async def _send(_: object) -> None: ...
 
 
 def create_request(
-        scope: dict[str, str],
+        scope: dict[str, Any],
         receive: Callable[[], Awaitable[object]] = _receive,
         send: Callable[[object], Awaitable[Any]] = _send
 ) -> Request:
@@ -197,7 +198,7 @@ class DeliveringTests(QualifierTestCase):
             # We assert that it is 2 arguments, because the wrapper over the mock passes an additional one
             self.assertEqual(
                 len(staff_send.call_args.args), 2,
-                msg="Staff send method not called with awaited amount of arguments"
+                msg="Staff send method not awaited with correct amount of arguments"
             )
 
             staff_id = staff_send.call_args.args[0]
@@ -243,7 +244,7 @@ class DeliveringTests(QualifierTestCase):
             staff_send.assert_awaited_once()
             staff_id = staff_send.call_args.args[0]
 
-            self.assertEqual(
+            self.assertIn(
                 order.scope["speciality"], staff[staff_id].scope["speciality"],
                 msg="Order speciality not matched with speciality of staff"
             )
@@ -282,9 +283,10 @@ class DeliveringTests(QualifierTestCase):
         for order in orders:
             await self.manager(order)
 
+            staff_send.assert_awaited_once()
             staff_id = staff_send.call_args.args[0]
 
-            self.assertEqual(
+            self.assertIn(
                 order.scope["speciality"], staff[staff_id].scope["speciality"],
                 msg="Order speciality not matched with speciality of staff"
             )
@@ -292,3 +294,39 @@ class DeliveringTests(QualifierTestCase):
 
         for request in staff.values():
             await self.manager(create_request({"type": "staff.offduty", "id": request.scope["id"]}))
+
+    async def test_multiple_specialities(self) -> None:
+        id_one, id_two = random.sample(STAFF_IDS, 2)
+
+        staff_receive, staff_send = AsyncMock(), AsyncMock()
+
+        staff_one = create_request(
+            {"type": "staff.onduty", "id": id_one, "speciality": [SPECIALITIES[0]]},
+            wrap_receive_mock(id_one, staff_receive),
+            wrap_send_mock(id_one, staff_send)
+        )
+        await self.manager(staff_one)
+
+        staff_two = create_request(
+            {"type": "staff.onduty", "id": id_two, "speciality": SPECIALITIES[1:]},
+            wrap_receive_mock(id_two, staff_receive),
+            wrap_send_mock(id_two, staff_send)
+        )
+        await self.manager(staff_two)
+
+        orders = [
+            create_request({"type": "order", "speciality": speciality})
+            for speciality in itertools.chain(*itertools.repeat(SPECIALITIES, 5))
+        ]
+
+        for order in orders:
+            await self.manager(order)
+
+            staff_send.assert_awaited_once()
+            staff_id = staff_send.call_args.args[0]
+            if order.scope["speciality"] == SPECIALITIES[0]:
+                self.assertEqual(staff_id, staff_one, msg="Order speciality not match with speciality of staff")
+            else:
+                self.assertEqual(staff_id, staff_two, msg="Order speciality not match with speciality of staff")
+
+            staff_send.reset_mock()
