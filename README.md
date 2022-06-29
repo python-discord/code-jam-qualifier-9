@@ -1,8 +1,8 @@
 # Summer Code Jam 2022: Qualifier
 
-To qualify for the upcoming Summer Code Jam, you'll have to complete a qualifier assignment. The goal is to make sure you have enough Python knowledge to effectively contribute to a team. In this assignment you have been tasked to create a function that makes a table with columns and rows.
+To qualify for the upcoming Summer Code Jam, you'll have to complete a qualifier assignment. The goal is to make sure you have enough Python knowledge to effectively contribute to a team.
 
-Please read the instructions carefully and submit your solution before the deadline using the [sign-up form](https://forms.pythondiscord.com).
+Please read the rules and instructions carefully, and submit your solution before the deadline using the [sign-up form](https://forms.pythondiscord.com).
 
 # Table of Contents
 
