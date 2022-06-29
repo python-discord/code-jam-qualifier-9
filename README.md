@@ -87,7 +87,7 @@ Requests from customers can be identified by the Request's scope dictionary's `"
 ```json
 {
 	"type": "order",
-	"speciality": "meat"
+	"speciality": ["meat"]
 }
 ```
 
@@ -114,18 +114,18 @@ Example requests:
 {
 	"type": "staff.onduty",
 	"id": "AbCd3Fg",
-        "speciality": ["meat"]
+        "speciality": ["pasta", "vegetables"]
 }
 ```
 
 ```json
 {
 	"type": "order",
-	"speciality": ["pasta", "vegetables"]
+	"speciality": "pasta"
 }
 ```
 
-Your application should pass the order to a staff member that has that specialty by reading the order's matching `"speciality"` key in its `scope` dictionary.
+An order requires a certain specialty, which can be read via the order's `"speciality"` key in its `scope` dictionary. Your application should pass the order to a staff member that has the order's specialty.
 
 > **Note**
 > The `"speciality"` key is included in all `"staff.onduty"` requests, but absent from `"staff.offduty"` requests.
