@@ -22,6 +22,24 @@ async def _receive() -> None: ...
 async def _send(_: object) -> None: ...
 
 
+class WarnTypoAccess(dict):
+    def __getitem__(self, key):
+        if key == "specialty":
+            raise RuntimeError(
+                "You may be using the wrong spelling for 'speciality'"
+                "; The correct key name is 'speciality', not 'specialty'."
+            )
+        return super().__getitem__(key)
+
+    def get(self, key, default=None):
+        if key == "specialty":
+            raise RuntimeError(
+                "You may be using the wrong spelling for 'speciality'"
+                "; The correct key name is 'speciality', not 'specialty'."
+            )
+        return super().get(key, default)
+
+
 def create_request(
         scope: dict[str, Any],
         receive: Callable[[], Awaitable[object]] = _receive,
@@ -31,28 +49,7 @@ def create_request(
     Create a request object with the given scope and receive/send functions.
     Raises an error with help message if 'specialty' is accessed.
     """
-    _err = RuntimeError(
-        "You may be using the wrong spelling for 'speciality'"
-        "; The correct key name is 'speciality', not 'specialty'."
-    )
-
-    # Dict wrapper
-    class DictWrapper(dict):
-        def __getitem__(self, key):
-            if key == "specialty":
-                raise _err
-            return super().__getitem__(key)
-
-        def get(self, key, default=None):
-            if key == "specialty":
-                raise _err
-            return super().get(key, default)
-
-    # Added specialty spelling warning if `speciality` is used
-    if 'speciality' in scope:
-        scope = DictWrapper(scope)
-
-    return Request(MappingProxyType(scope), receive, send)
+    return Request(MappingProxyType(WarnTypoAccess(scope)), receive, send)
 
 
 def wrap_receive_mock(id_: str, mock: AsyncMock) -> Callable[[], Awaitable[object]]:
