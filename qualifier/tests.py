@@ -87,7 +87,7 @@ class RegistrationTests(QualifierTestCase):
         receive.reset_mock()
         send.reset_mock()
 
-        await self.manager(create_request({"type": "staff.offduty", "id": "jmMZkSGVBbCDgKKMMSNPS"}, receive, send))
+        await self.manager(create_request({"type": "staff.offduty", "id": id_}, receive, send))
 
         self.verify_staff_dict()
 
