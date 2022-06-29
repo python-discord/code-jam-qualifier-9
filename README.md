@@ -110,14 +110,14 @@ await request.send(result)
 ```
 
 ### Step 4 - Order Specialization
-Certain staff are better at certain orders, making them faster at that type of order. You can read this from the staff's request `scope` dictionary with the `"speciality"` key.
+Each staff has a list of things they specialize in. You can read this from the staff's request `scope` dictionary with the `"speciality"` key (British spelling).
 
 Example requests:
 ```json
 {
 	"type": "staff.onduty",
 	"id": "AbCd3Fg",
-        "speciality": ["pasta", "vegetables"]
+    "speciality": ["pasta", "vegetables"]
 }
 ```
 
