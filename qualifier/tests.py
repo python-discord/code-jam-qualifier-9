@@ -13,7 +13,7 @@ STAFF_IDS = (
     "jmMZkSGVBbCDgKKMMSNPS", "HeLlOWoRlD123", "iKnowThatYouAreReadingThis",
     "PyTHonDIscorDCoDEJam", "iWAShereWRITINGthis"
 )
-SPECIALITIES = (
+SPECIALTIES = (
     "pasta", "meat", "vegetables", "non-food", "dessert",
 )
 
@@ -67,7 +67,7 @@ class RegistrationTests(QualifierTestCase):
         id_ = STAFF_IDS[0]
         receive, send = AsyncMock(), AsyncMock()
 
-        staff = create_request({"type": "staff.onduty", "id": id_, "speciality": [SPECIALITIES[0]]}, receive, send)
+        staff = create_request({"type": "staff.onduty", "id": id_, "specialty": [SPECIALTIES[0]]}, receive, send)
 
         await self.manager(staff)
 
@@ -96,10 +96,10 @@ class RegistrationTests(QualifierTestCase):
     async def test_multiple_staff_registration(self) -> None:
         staff: list[Request] = []
 
-        for id_, speciality in zip(STAFF_IDS, SPECIALITIES):
+        for id_, specialty in zip(STAFF_IDS, SPECIALTIES):
             receive, send = AsyncMock(), AsyncMock()
 
-            request = create_request({"type": "staff.onduty", "id": id_, "speciality": [speciality]}, receive, send)
+            request = create_request({"type": "staff.onduty", "id": id_, "specialty": [specialty]}, receive, send)
             staff.append(request)
 
             await self.manager(request)
@@ -135,14 +135,14 @@ class DeliveringTests(QualifierTestCase):
 
         complete_order, result = object(), object()
         staff = create_request(
-            {"type": "staff.onduty", "id": id_, "speciality": [SPECIALITIES[-1]]},
+            {"type": "staff.onduty", "id": id_, "specialty": [SPECIALTIES[-1]]},
             AsyncMock(return_value=result), AsyncMock()
         )
 
         await self.manager(staff)
 
         order = create_request(
-            {"type": "order", "speciality": SPECIALITIES[-1]},
+            {"type": "order", "specialty": SPECIALTIES[-1]},
             AsyncMock(return_value=complete_order), AsyncMock()
         )
         await self.manager(order)
@@ -168,21 +168,21 @@ class DeliveringTests(QualifierTestCase):
         staff_receive, staff_send = AsyncMock(), AsyncMock()
         staff = [
             create_request(
-                {"type": "staff.onduty", "id": id_, "speciality": [speciality]},
+                {"type": "staff.onduty", "id": id_, "specialty": [specialty]},
 
                 # We wrap the mocks so that they pass the ID of the staff, that way
                 # we can ensure that the order was both sent and received to the same staff.
                 wrap_receive_mock(id_, staff_receive), wrap_send_mock(id_, staff_send)
             )
-            for id_, speciality in zip(STAFF_IDS, reversed(SPECIALITIES))
+            for id_, specialty in zip(STAFF_IDS, reversed(SPECIALTIES))
         ]
 
         for request in staff:
             await self.manager(request)
 
         orders = [
-            create_request({"type": "order", "speciality": speciality}, AsyncMock(), AsyncMock())
-            for speciality in SPECIALITIES
+            create_request({"type": "order", "specialty": specialty}, AsyncMock(), AsyncMock())
+            for specialty in SPECIALTIES
         ]
 
         for order, (full_order, result) in zip(orders, sentinels):
@@ -214,27 +214,27 @@ class DeliveringTests(QualifierTestCase):
         for request in staff:
             await self.manager(create_request({"type": "staff.offduty", "id": request.scope["id"]}))
 
-    async def test_order_speciality_match(self) -> None:
-        staff_ids, specialities = list(STAFF_IDS), list(SPECIALITIES)
+    async def test_order_specialty_match(self) -> None:
+        staff_ids, specialties = list(STAFF_IDS), list(SPECIALTIES)
         random.shuffle(staff_ids)
-        random.shuffle(specialities)
+        random.shuffle(specialties)
 
         staff_receive, staff_send = AsyncMock(), AsyncMock()
         staff = {
             id_: create_request(
-                {"type": "staff.onduty", "id": id_, "speciality": [speciality]},
+                {"type": "staff.onduty", "id": id_, "specialty": [specialty]},
 
                 # We wrap the mocks so that they pass the ID of the staff, that way
                 # we can ensure that the order was both sent and received to the same staff.
                 wrap_receive_mock(id_, staff_receive), wrap_send_mock(id_, staff_send)
             )
-            for id_, speciality in zip(staff_ids, specialities)
+            for id_, specialty in zip(staff_ids, specialties)
         }
 
         for request in staff.values():
             await self.manager(request)
 
-        orders = [create_request({"type": "order", "speciality": speciality}) for speciality in specialities * 10]
+        orders = [create_request({"type": "order", "specialty": specialty}) for specialty in specialties * 10]
 
         for order in orders:
             await self.manager(order)
@@ -243,39 +243,39 @@ class DeliveringTests(QualifierTestCase):
             staff_id = staff_send.call_args.args[0]
 
             self.assertIn(
-                order.scope["speciality"], staff[staff_id].scope["speciality"],
-                msg="Order speciality not matched with speciality of staff"
+                order.scope["specialty"], staff[staff_id].scope["specialty"],
+                msg="Order specialty not matched with specialty of staff"
             )
             staff_send.reset_mock()
 
         for request in staff.values():
             await self.manager(create_request({"type": "staff.offduty", "id": request.scope["id"]}))
 
-    async def test_uneven_order_speciality(self) -> None:
-        # Similar to test_order_speciality_match() but there are multiple staff
-        # with the same speciality.
-        staff_ids, specialities = list(STAFF_IDS), list(SPECIALITIES[:2])
+    async def test_uneven_order_specialty(self) -> None:
+        # Similar to test_order_specialty_match() but there are multiple staff
+        # with the same specialty.
+        staff_ids, specialties = list(STAFF_IDS), list(SPECIALTIES[:2])
         random.shuffle(staff_ids)
-        random.shuffle(specialities)
+        random.shuffle(specialties)
 
         staff_receive, staff_send = AsyncMock(), AsyncMock()
         staff = {
             id_: create_request(
-                {"type": "staff.onduty", "id": id_, "speciality": [speciality]},
+                {"type": "staff.onduty", "id": id_, "specialty": [specialty]},
 
                 # We wrap the mocks so that they pass the ID of the staff, that way
                 # we can ensure that the order was both sent and received to the same staff.
                 wrap_receive_mock(id_, staff_receive), wrap_send_mock(id_, staff_send)
             )
-            for id_, speciality in zip(staff_ids, itertools.cycle(specialities))
+            for id_, specialty in zip(staff_ids, itertools.cycle(specialties))
         }
 
         for request in staff.values():
             await self.manager(request)
 
         orders = [
-            create_request({"type": "order", "speciality": speciality})
-            for speciality in itertools.chain(*itertools.repeat(specialities, 5))
+            create_request({"type": "order", "specialty": specialty})
+            for specialty in itertools.chain(*itertools.repeat(specialties, 5))
         ]
 
         for order in orders:
@@ -285,36 +285,36 @@ class DeliveringTests(QualifierTestCase):
             staff_id = staff_send.call_args.args[0]
 
             self.assertIn(
-                order.scope["speciality"], staff[staff_id].scope["speciality"],
-                msg="Order speciality not matched with speciality of staff"
+                order.scope["specialty"], staff[staff_id].scope["specialty"],
+                msg="Order specialty not matched with specialty of staff"
             )
             staff_send.reset_mock()
 
         for request in staff.values():
             await self.manager(create_request({"type": "staff.offduty", "id": request.scope["id"]}))
 
-    async def test_multiple_specialities(self) -> None:
+    async def test_multiple_specialties(self) -> None:
         id_one, id_two = random.sample(STAFF_IDS, 2)
 
         staff_receive, staff_send = AsyncMock(), AsyncMock()
 
         staff_one = create_request(
-            {"type": "staff.onduty", "id": id_one, "speciality": [SPECIALITIES[0]]},
+            {"type": "staff.onduty", "id": id_one, "specialty": [SPECIALTIES[0]]},
             wrap_receive_mock(id_one, staff_receive),
             wrap_send_mock(id_one, staff_send)
         )
         await self.manager(staff_one)
 
         staff_two = create_request(
-            {"type": "staff.onduty", "id": id_two, "speciality": SPECIALITIES[1:]},
+            {"type": "staff.onduty", "id": id_two, "specialty": SPECIALTIES[1:]},
             wrap_receive_mock(id_two, staff_receive),
             wrap_send_mock(id_two, staff_send)
         )
         await self.manager(staff_two)
 
         orders = [
-            create_request({"type": "order", "speciality": speciality})
-            for speciality in itertools.chain(*itertools.repeat(SPECIALITIES, 5))
+            create_request({"type": "order", "specialty": specialty})
+            for specialty in itertools.chain(*itertools.repeat(SPECIALTIES, 5))
         ]
 
         for order in orders:
@@ -322,9 +322,9 @@ class DeliveringTests(QualifierTestCase):
 
             staff_send.assert_awaited_once()
             staff_id = staff_send.call_args.args[0]
-            if order.scope["speciality"] == SPECIALITIES[0]:
-                self.assertEqual(staff_id, staff_one.scope["id"], msg="Order speciality not match with speciality of staff")
+            if order.scope["specialty"] == SPECIALTIES[0]:
+                self.assertEqual(staff_id, staff_one.scope["id"], msg="Order specialty not match with specialty of staff")
             else:
-                self.assertEqual(staff_id, staff_two.scope["id"], msg="Order speciality not match with speciality of staff")
+                self.assertEqual(staff_id, staff_two.scope["id"], msg="Order specialty not match with specialty of staff")
 
             staff_send.reset_mock()

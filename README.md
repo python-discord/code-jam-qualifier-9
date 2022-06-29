@@ -59,13 +59,13 @@ An example `"staff.onduty"` request:
 {
 	"type": "staff.onduty",
 	"id": "AbCd3Fg",
-	"speciality": ["meat"]
+	"specialty": ["meat"]
 }
 ```
 
 When a `"staff.onduty"` request is received, you should add their request to the `self.staff` dictionary using their ID as the key. This is so that we can keep track of who is currently working.
 
-There is also a "speciality" key included, but you do not need to worry about that yet.
+There is also a "specialty" key included, but you do not need to worry about that yet.
 
 ### Step 2 - Off Duty
 At the end of the day, staff members will let your application know that they are going off-duty. This will be done with a new Request. You can identify an off-duty request by the Request scope key `"type"` — it will be set to `"staff.offduty"`. 
@@ -90,7 +90,7 @@ Requests from customers can be identified by the Request's scope dictionary's `"
 ```json
 {
 	"type": "order",
-	"speciality": "meat"
+	"specialty": "meat"
 }
 ```
 
@@ -110,28 +110,28 @@ await request.send(result)
 ```
 
 ### Step 4 - Order Specialization
-Certain staff are better at certain orders, making them faster at that type of order. You can read this from the staff's request `scope` dictionary with the `"speciality"` key.
+Certain staff are better at certain orders, making them faster at that type of order. You can read this from the staff's request `scope` dictionary with the `"specialty"` key.
 
 Example requests:
 ```json
 {
 	"type": "staff.onduty",
 	"id": "AbCd3Fg",
-        "speciality": ["pasta", "vegetables"]
+        "specialty": ["pasta", "vegetables"]
 }
 ```
 
 ```json
 {
 	"type": "order",
-	"speciality": "pasta"
+	"specialty": "pasta"
 }
 ```
 
-An order requires a certain specialty, which can be read via the order's `"speciality"` key in its `scope` dictionary. Your application should pass the order to a staff member that has the order's specialty.
+An order requires a certain specialty, which can be read via the order's `"specialty"` key in its `scope` dictionary. Your application should pass the order to a staff member that has the order's specialty.
 
 > **Note**
-> The `"speciality"` key is included in all `"staff.onduty"` requests, but absent from `"staff.offduty"` requests.
+> The `"specialty"` key is included in all `"staff.onduty"` requests, but absent from `"staff.offduty"` requests.
 
 #### Challenge Yourself
 We won't test you on how you distribute work between prioritized staff members, but in a self-respecting kitchen, work should be distributed fairly.
