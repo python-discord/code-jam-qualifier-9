@@ -27,7 +27,7 @@ Your code will be tested with a multitude of tests to test all aspects of your c
 
 - Your submission will be tested using a Python 3.10.5 interpreter without any additional packages installed. You're allowed to use everything included in Python's standard library, but nothing else. Please make sure to include the relevant `import` statements in your submission.
 
-- Use [`qualifier.py`](qualifier/qualifier.py) as the base for your solution. It includes a stub for the class you need to write: `make_table`.
+- Use [`qualifier.py`](qualifier/qualifier.py) as the base for your solution. It includes a stub for the class you need to write: `RestaurantManager`.
 
 - Do not change the **signature** of functions included in [`qualifier.py`](qualifier/qualifier.py), and do not change the `Request` class. The test suite we will use to judge your submission relies on them. Everything else, including the docstring, may be changed.
 
