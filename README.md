@@ -35,8 +35,8 @@ Your code will be tested with a multitude of tests to test all aspects of your c
 
 - This qualifier task is supposed to be **an individual challenge**. You should not discuss (parts of) your solution in public (including our server), or rely on others' solutions to the qualifier. Failure to meet this requirement may result in the **disqualification** of all parties involved. You are still allowed to do research and ask questions about Python as they relate to your qualifier solution, but try to use general examples if you post code along with your questions.
 
-- You can run the tests locally by running the `unittest` suite with `py -m unittest tests.py` from within the
-`./qualifier` direcory.
+- You can run the tests locally by running the `unittest` suite with `python -m unittest tests.py` or `py -m unittest tests.py` from within the
+`./qualifier` directory.
 
 # Qualifier Assignment: The Dirty Fork
 
