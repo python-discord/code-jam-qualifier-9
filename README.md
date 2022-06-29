@@ -40,6 +40,7 @@ Your code will be tested with a multitude of tests to test all aspects of your c
 
 The Python Discord group is joining the hype of on-demand food delivery services. Our new online restaurant is called “The Dirty Fork”. 
 > “The lemon chicken I ordered arrived quickly and hot. My delivery driver Dave was just ducky! I highly recommend this service!”
+>
 >⠀⠀⠀⠀⠀⠀⠀⠀— Mr. Hem J. Lock
 
 We would like you to create an application that takes in orders from customers, and delegates them to on-duty staff. Once the staff is done, your application should serve the finished order to the customer.
