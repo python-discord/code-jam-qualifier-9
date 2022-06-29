@@ -87,7 +87,7 @@ Requests from customers can be identified by the Request's scope dictionary's `"
 ```json
 {
 	"type": "order",
-	"speciality": ["meat"]
+	"speciality": "meat"
 }
 ```
 
