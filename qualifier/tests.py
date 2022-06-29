@@ -52,7 +52,7 @@ def create_request(
     if 'speciality' in scope:
         scope = DictWrapper(scope)
 
-    return Request(scope, receive, send)
+    return Request(MappingProxyType(scope), receive, send)
 
 
 def wrap_receive_mock(id_: str, mock: AsyncMock) -> Callable[[], Awaitable[object]]:
