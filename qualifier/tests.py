@@ -89,6 +89,9 @@ class RegistrationTests(QualifierTestCase):
 
         await self.manager(create_request({"type": "staff.offduty", "id": id_}, receive, send))
 
+        receive.assert_not_called()
+        send.assert_not_called()
+
         self.verify_staff_dict()
 
         self.assertEqual(self.manager.staff, {}, msg="Staff not removed after going off-duty")
