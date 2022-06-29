@@ -2,7 +2,7 @@
 
 To qualify for the upcoming Summer Code Jam, you'll have to complete a qualifier assignment. The goal is to make sure you have enough Python knowledge to effectively contribute to a team.
 
-Please read the rules and instructions carefully, and submit your solution before the deadline using the [sign-up form](https://forms.pythondiscord.com).
+Please read the rules and instructions carefully, and submit your solution before the deadline using the [sign-up form](https://forms.pythondiscord.com/form/cj9-qualifier).
 
 # Table of Contents
 
@@ -18,7 +18,7 @@ Please read the rules and instructions carefully, and submit your solution befor
 
 # Qualifying for the Code Jam
 
-To qualify for the Code Jam you will be required to upload your submission to the [sign-up form](https://forms.pythondiscord.com).
+To qualify for the Code Jam you will be required to upload your submission to the [sign-up form](https://forms.pythondiscord.com/form/cj9-qualifier).
 We set up our test suite so you don't have to worry about setting one up yourself.
 
 Your code will be tested with a multitude of tests to test all aspects of your code making sure it works.
