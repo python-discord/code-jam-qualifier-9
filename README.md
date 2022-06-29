@@ -40,7 +40,7 @@ Your code will be tested with a multitude of tests to test all aspects of your c
 
 # Qualifier Assignment: The Dirty Fork
 
-The Python Discord group is joining the hype of on-demand food delivery services. Our new online restaurant is called “The Dirty Fork”. 
+The Python Discord group is joining the hype of on-demand food delivery services. Our new online restaurant is called “The Dirty Fork”.
 > “The lemon chicken I ordered arrived quickly and hot. My delivery driver Dave was just ducky! I highly recommend this service!”
 >
 >⠀⠀⠀⠀⠀⠀⠀⠀— Mr. Hem J. Lock
@@ -68,7 +68,7 @@ When a `"staff.onduty"` request is received, you should add their request to the
 There is also a "speciality" key included, but you do not need to worry about that yet.
 
 ### Step 2 - Off Duty
-At the end of the day, staff members will let your application know that they are going off-duty. This will be done with a new Request. You can identify an off-duty request by the Request scope key `"type"` — it will be set to `"staff.offduty"`. 
+At the end of the day, staff members will let your application know that they are going off-duty. This will be done with a new Request. You can identify an off-duty request by the Request scope key `"type"` — it will be set to `"staff.offduty"`.
 
 An example `"staff.offduty"` request:
 ```json
@@ -86,7 +86,7 @@ When a `"staff.offduty"` request is received, the staff member must be removed f
 ### Step 3 - Handling Customers
 After all staff members have become on-duty, you will begin receiving requests from customers trying to order food.
 
-Requests from customers can be identified by the Request's scope dictionary's `"type"` key having the value `"order"`. 
+Requests from customers can be identified by the Request's scope dictionary's `"type"` key having the value `"order"`.
 ```json
 {
 	"type": "order",
@@ -95,7 +95,7 @@ Requests from customers can be identified by the Request's scope dictionary's `"
 ```
 
 When an order request is received, you should receive the full order via the `.receive()` method. Your application doesn't need to concern itself with what this order is. This object should just be:
-- Passed to a selected member of staff by calling the `.send()` method. 
+- Passed to a selected member of staff by calling the `.send()` method.
 - Afterwards, call the staff's `.receive()` method to get the result.
 - And finally, pass the result back to the order using the `.send()` method.
 
@@ -138,7 +138,6 @@ We won't test you on how you distribute work between prioritized staff members, 
 
 > **Warning**
 > The tests rely on the structure of `self.staff`. If you wish to change the structure of the `self.staff` attribute at any point in this step, you can create a property named `staff` to make earlier tests still pass. It should return a dictionary with the same structure as `self.staff` used to.
-
 
 ## Good Luck!
 
