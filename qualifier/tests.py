@@ -2,7 +2,7 @@ import random
 import unittest
 import itertools
 from types import MappingProxyType
-from typing import Any, Awaitable, Callable
+from typing import Any, Awaitable, Callable, Dict, List
 from unittest.mock import AsyncMock
 
 import qualifier
@@ -23,7 +23,7 @@ async def _send(_: object) -> None: ...
 
 
 def create_request(
-        scope: dict[str, Any],
+        scope: Dict[str, Any],
         receive: Callable[[], Awaitable[object]] = _receive,
         send: Callable[[object], Awaitable[Any]] = _send
 ) -> Request:
@@ -94,7 +94,7 @@ class RegistrationTests(QualifierTestCase):
         self.assertEqual(self.manager.staff, {}, msg="Staff not removed after going off-duty")
 
     async def test_multiple_staff_registration(self) -> None:
-        staff: list[Request] = []
+        staff: List[Request] = []
 
         for id_, speciality in zip(STAFF_IDS, SPECIALITIES):
             receive, send = AsyncMock(), AsyncMock()
