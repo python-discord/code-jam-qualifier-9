@@ -22,12 +22,34 @@ async def _receive() -> None: ...
 async def _send(_: object) -> None: ...
 
 
+class WarnTypoAccess(dict):
+    def __getitem__(self, key):
+        if key == "specialty":
+            raise RuntimeError(
+                "You may be using the wrong spelling for 'speciality'"
+                "; The correct key name is 'speciality', not 'specialty'."
+            )
+        return super().__getitem__(key)
+
+    def get(self, key, default=None):
+        if key == "specialty":
+            raise RuntimeError(
+                "You may be using the wrong spelling for 'speciality'"
+                "; The correct key name is 'speciality', not 'specialty'."
+            )
+        return super().get(key, default)
+
+
 def create_request(
         scope: Dict[str, Any],
         receive: Callable[[], Awaitable[object]] = _receive,
         send: Callable[[object], Awaitable[Any]] = _send
 ) -> Request:
-    return Request(MappingProxyType(scope), receive, send)
+    """
+    Create a request object with the given scope and receive/send functions.
+    Raises an error with help message if 'specialty' is accessed.
+    """
+    return Request(MappingProxyType(WarnTypoAccess(scope)), receive, send)
 
 
 def wrap_receive_mock(id_: str, mock: AsyncMock) -> Callable[[], Awaitable[object]]:
